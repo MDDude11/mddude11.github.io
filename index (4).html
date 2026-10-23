@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Creative Dogs — indie game studio making focused, original mobile games from Singapore.">
+  <title>Creative Dogs | Indie Game Studio</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500&display=swap" rel="stylesheet">
+
+  <style>
+    /* =============================================
+       TOKENS
+    ============================================= */
+    :root {
+      --bg:        #0c0a08;
+      --bg2:       #131109;
+      --surface:   #1c1814;
+      --border:    #2a2420;
+      --border2:   #3c342c;
+      --text:      #ede8df;
+      --muted:     #7c7268;
+      --muted2:    #524c44;
+      --accent:    #ff5e2c;
+      --accent-d:  rgba(255, 94, 44, 0.10);
+      --warm:      #f0c030;
+      --r-sm:  8px;
+      --r-md: 14px;
+      --r-lg: 22px;
+    }
+
+    /* =============================================
+       RESET
+    ============================================= */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    img { display: block; max-width: 100%; }
+    a   { color: inherit; text-decoration: none; }
+    ul  { list-style: none; }
+
+    /* =============================================
+       GRAIN OVERLAY  (film grain texture)
+    ============================================= */
+    .grain {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9998;
+      opacity: 0.055;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+    }
+
+    /* =============================================
+       LAYOUT
+    ============================================= */
+    .wrap { width: min(1100px, 90%); margin: 0 auto; }
+
+    /* =============================================
+       TYPOGRAPHY
+    ============================================= */
+    h1, h2, h3 {
+      font-family: 'Syne', system-ui, sans-serif;
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.025em;
+      text-wrap: balance;
+    }
+    h2 { font-size: clamp(1.8rem, 3.5vw, 2.5rem); }
+    h3 { font-size: 1.15rem; letter-spacing: -0.015em; }
+    p  { line-height: 1.65; }
+
+    .label {
+      display: inline-block;
+      font-size: 0.68rem;
+      font-weight: 500;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    /* =============================================
+       NAV
+    ============================================= */
+    #nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      border-bottom: 1px solid transparent;
+      transition:
+        background     350ms ease,
+        border-color   350ms ease,
+        backdrop-filter 350ms ease;
+    }
+    #nav.scrolled {
+      background: rgba(12, 10, 8, 0.82);
+      backdrop-filter: blur(20px) saturate(160%);
+      -webkit-backdrop-filter: blur(20px) saturate(160%);
+      border-bottom-color: var(--border);
+    }
+    .nav-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 0;
+    }
+    .nav-brand {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.05rem;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      transition: opacity 150ms ease;
+    }
+    .nav-brand:hover { opacity: 0.6; }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+    .nav-links a {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--muted);
+      transition: color 150ms ease;
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    /* =============================================
+       HERO
+    ============================================= */
+    .hero {
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Ambient glow behind logo */
+    .hero-glow {
+      position: absolute;
+      top: 44%;
+      left: 50%;
+      translate: -50% -50%;
+      width: 780px;
+      height: 780px;
+      border-radius: 50%;
+      background: radial-gradient(circle at center,
+        rgba(255, 94, 44, 0.09)  0%,
+        rgba(240, 192, 48, 0.04) 38%,
+        transparent              70%);
+      pointer-events: none;
+    }
+
+    /* Logo — inverted sketch on dark, blends via screen so black bg vanishes */
+    .hero-logo {
+      width: clamp(210px, 36vw, 320px);
+      height: auto;
+      filter: invert(1);
+      mix-blend-mode: screen;
+      margin-bottom: 28px;
+      animation:
+        logoIn    680ms cubic-bezier(0.22, 0, 0, 1) 80ms  both,
+        logoFloat 5.6s  ease-in-out                 900ms infinite;
+    }
+    .hero-logo:hover { filter: invert(1) brightness(1.12); }
+
+    @keyframes logoIn {
+      from { opacity: 0; transform: scale(0.88) translateY(10px); }
+      to   { opacity: 1; transform: scale(1)    translateY(0); }
+    }
+    @keyframes logoFloat {
+      0%, 100% { transform: translateY(0);    }
+      50%       { transform: translateY(-13px); }
+    }
+
+    .hero-tag {
+      font-size: 0.68rem;
+      font-weight: 500;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 16px;
+      animation: heroUp 520ms ease-out 360ms both;
+    }
+
+    .hero-h1 {
+      font-family: 'Syne', system-ui, sans-serif;
+      font-weight: 800;
+      font-size: clamp(2.6rem, 7.5vw, 5rem);
+      line-height: 1.0;
+      letter-spacing: -0.04em;
+      text-wrap: balance;
+      margin-bottom: 18px;
+      background: linear-gradient(150deg, var(--text) 40%, var(--muted) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: heroUp 520ms ease-out 460ms both;
+    }
+
+    .hero-sub {
+      font-size: 1.05rem;
+      color: var(--muted);
+      max-width: 46ch;
+      margin-bottom: 38px;
+      animation: heroUp 520ms ease-out 560ms both;
+    }
+
+    .hero-ctas {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      animation: heroUp 520ms ease-out 660ms both;
+    }
+
+    .scroll-down {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      translate: -50% 0;
+      color: var(--muted2);
+      animation: scrollBounce 2.6s ease-in-out infinite;
+    }
+    .scroll-down svg { width: 22px; height: 22px; }
+
+    @keyframes heroUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes scrollBounce {
+      0%, 100% { translate: -50% 0;   opacity: 0.35; }
+      50%       { translate: -50% 7px; opacity: 0.75; }
+    }
+
+    /* =============================================
+       BUTTONS
+    ============================================= */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 12px 22px;
+      border-radius: 999px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      transition:
+        transform    180ms cubic-bezier(0, 0, 0.58, 1),
+        box-shadow   180ms ease,
+        background   180ms ease,
+        color        180ms ease,
+        border-color 180ms ease;
+    }
+    /* Respond on pointer-down — Apple design principle */
+    .btn:active {
+      transform: scale(0.95) !important;
+      transition-duration: 70ms;
+    }
+
+    .btn-fill {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 2px 22px rgba(255, 94, 44, 0.3);
+    }
+    .btn-fill:hover {
+      background: #e8511e;
+      box-shadow: 0 4px 32px rgba(255, 94, 44, 0.45);
+      transform: translateY(-2px);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border2);
+    }
+    .btn-outline:hover {
+      background: var(--surface);
+      color: var(--text);
+      transform: translateY(-2px);
+    }
+
+    /* =============================================
+       DIVIDER
+    ============================================= */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border) 25%, var(--border) 75%, transparent);
+    }
+
+    /* =============================================
+       GAMES
+    ============================================= */
+    #games { padding: 96px 0; }
+
+    .section-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 44px;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .game-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      overflow: hidden;
+      cursor: pointer;
+      transform-style: preserve-3d;
+      will-change: transform;
+      transition:
+        border-color 280ms ease,
+        box-shadow   280ms ease;
+    }
+    .game-card:hover {
+      border-color: var(--border2);
+      box-shadow: 0 18px 52px rgba(0, 0, 0, 0.5);
+    }
+
+    /* ── CSS-only game cover art ── */
+    .cover {
+      height: 192px;
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    /* Deep blue / space */
+    .c1 { background: #091524; }
+    .c1::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse at 65% 28%, rgba(60, 140, 240, 0.32) 0%, transparent 52%),
+        repeating-linear-gradient(0deg,   transparent, transparent 38px, rgba(70, 150, 255, 0.04) 39px),
+        repeating-linear-gradient(90deg, transparent, transparent 38px, rgba(70, 150, 255, 0.04) 39px);
+    }
+    .c1::after {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      translate: -50% -50%;
+      width: 70px; height: 70px;
+      border: 1.5px solid rgba(90, 170, 255, 0.38);
+      border-radius: 50%;
+      box-shadow:
+        0 0 0 16px rgba(70, 140, 255, 0.06),
+        0 0 0 34px rgba(70, 140, 255, 0.03),
+        0 0  40px rgba(70, 150, 255, 0.22);
+    }
+
+    /* Ember / orange fire */
+    .c2 { background: #160b08; }
+    .c2::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse at 28% 68%, rgba(255, 75, 15, 0.34) 0%, transparent 50%),
+        radial-gradient(ellipse at 72% 32%, rgba(245, 175, 20, 0.26) 0%, transparent 44%);
+    }
+    .c2::after {
+      content: '';
+      position: absolute;
+      bottom: 22%;
+      left: 16%; right: 16%;
+      height: 2px;
+      background: linear-gradient(90deg,
+        transparent,
+        rgba(255, 100, 30, 0.75),
+        rgba(250, 195, 30, 0.95),
+        rgba(255, 100, 30, 0.75),
+        transparent);
+      box-shadow:
+        0 0 12px rgba(255, 100, 30, 0.65),
+        0 0 30px rgba(255, 100, 30, 0.22);
+    }
+
+    /* Forest / deep green */
+    .c3 { background: #081610; }
+    .c3::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse at 50% 62%, rgba(38, 185, 95, 0.22) 0%, transparent 58%),
+        repeating-conic-gradient(from 0deg at 50% 112%, transparent 0deg, transparent 17deg, rgba(38, 190, 95, 0.04) 18deg);
+    }
+    .c3::after {
+      content: '';
+      position: absolute;
+      top: 38%; left: 50%;
+      translate: -50% -50%;
+      width: 36px; height: 36px;
+      background: rgba(38, 190, 95, 0.13);
+      border: 1px solid rgba(38, 190, 95, 0.38);
+      rotate: 45deg;
+      box-shadow: 0 0 28px rgba(38, 190, 95, 0.14);
+    }
+
+    .cover-badge {
+      position: absolute;
+      top: 12px; left: 12px;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      color: rgba(255, 255, 255, 0.78);
+      font-size: 0.63rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .card-body { padding: 22px 22px 26px; }
+    .card-body h3 { margin-bottom: 8px; }
+    .card-body p {
+      color: var(--muted);
+      font-size: 0.875rem;
+      line-height: 1.55;
+      max-width: none;
+    }
+
+    /* =============================================
+       ABOUT
+    ============================================= */
+    #about { padding: 96px 0; }
+
+    .about-inner {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 80px;
+      align-items: center;
+    }
+
+    .about-copy h2    { margin-bottom: 20px; }
+    .about-copy p     { color: var(--muted); max-width: 52ch; margin-bottom: 14px; }
+    .about-copy p:last-of-type { margin-bottom: 0; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      padding: 24px 20px;
+      transition: border-color 250ms ease, transform 250ms ease;
+    }
+    .stat:hover {
+      border-color: var(--border2);
+      transform: translateY(-2px);
+    }
+
+    .stat-n {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 2rem;
+      line-height: 1;
+      letter-spacing: -0.04em;
+      color: var(--accent);
+      margin-bottom: 5px;
+      font-variant-numeric: tabular-nums;
+    }
+    .stat-l {
+      font-size: 0.68rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted2);
+    }
+
+    /* =============================================
+       CONTACT
+    ============================================= */
+    #contact { padding: 96px 0; }
+
+    .contact-inner {
+      max-width: 520px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .contact-inner h2 { margin-bottom: 14px; }
+    .contact-inner p  {
+      color: var(--muted);
+      margin-bottom: 30px;
+      margin-left: auto;
+      margin-right: auto;
+      max-width: 42ch;
+    }
+
+    /* =============================================
+       FOOTER
+    ============================================= */
+    footer { border-top: 1px solid var(--border); padding: 24px 0; }
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .footer-inner p {
+      font-size: 0.8rem;
+      color: var(--muted2);
+      max-width: none;
+    }
+
+    /* =============================================
+       SCROLL REVEAL
+    ============================================= */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(22px);
+      transition:
+        opacity   580ms ease-out,
+        transform 580ms ease-out;
+    }
+    .fade-up.in { opacity: 1; transform: translateY(0); }
+    .fade-up.d1 { transition-delay:  90ms; }
+    .fade-up.d2 { transition-delay: 180ms; }
+    .fade-up.d3 { transition-delay: 270ms; }
+
+    /* =============================================
+       RESPONSIVE
+    ============================================= */
+    @media (max-width: 860px) {
+      .games-grid  { grid-template-columns: 1fr 1fr; }
+      .about-inner { grid-template-columns: 1fr; gap: 48px; }
+    }
+    @media (max-width: 580px) {
+      .games-grid      { grid-template-columns: 1fr; }
+      .nav-links       { display: none; }
+      .section-head    { flex-direction: column; align-items: flex-start; }
+      .hero-sub        { max-width: 36ch; }
+    }
+
+    /* =============================================
+       REDUCED MOTION
+    ============================================= */
+    @media (prefers-reduced-motion: reduce) {
+      .hero-logo, .hero-tag, .hero-h1,
+      .hero-sub, .hero-ctas, .scroll-down {
+        animation: none;
+        opacity: 1;
+        transform: none;
+      }
+      .fade-up { opacity: 1; transform: none; transition: none; }
+      .game-card { transition: border-color 150ms ease; }
+      .stat:hover { transform: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Film grain -->
+  <div class="grain" aria-hidden="true"></div>
+
+  <!-- ─────────────────────────── NAV ─── -->
+  <nav id="nav" aria-label="Main navigation">
+    <div class="wrap nav-wrap">
+      <a href="#" class="nav-brand">Creative Dogs</a>
+      <ul class="nav-links">
+        <li><a href="#games">Games</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ─────────────────────────── HERO ─── -->
+  <section class="hero">
+    <div class="hero-glow" aria-hidden="true"></div>
+
+    <img
+      class="hero-logo"
+      src="logo.jpg"
+      alt="Creative Dogs — indie game studio"
+      width="320"
+      height="200"
+      loading="eager"
+    >
+
+    <p class="hero-tag">Indie Game Studio · Singapore</p>
+
+    <h1 class="hero-h1">Making games<br>worth playing.</h1>
+
+    <p class="hero-sub">Small team, focused games. No dark patterns, no bloat — just games we'd want to pick up.</p>
+
+    <div class="hero-ctas">
+      <a href="#" class="btn btn-fill">
+        <!-- Play triangle -->
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true">
+          <polygon points="2,1 11,6 2,11"/>
+        </svg>
+        Play Store
+      </a>
+      <a href="#games" class="btn btn-outline">See our games</a>
+    </div>
+
+    <div class="scroll-down" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 5v14m0 0-5-5m5 5 5-5"/>
+      </svg>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ─────────────────────────── GAMES ─── -->
+  <section id="games">
+    <div class="wrap">
+
+      <div class="section-head">
+        <div>
+          <span class="label fade-up">Our Games</span>
+          <h2 class="fade-up d1">What we're building</h2>
+        </div>
+        <a href="#" class="btn btn-outline fade-up d2" style="align-self: flex-end; flex-shrink: 0;">
+          View on Play Store
+        </a>
+      </div>
+
+      <div class="games-grid">
+
+        <article class="game-card fade-up">
+          <div class="cover c1">
+            <span class="cover-badge">In development</span>
+          </div>
+          <div class="card-body">
+            <h3>Project Alpha</h3>
+            <p>A puzzle game about movement and momentum. Replace this once you're ready to share.</p>
+          </div>
+        </article>
+
+        <article class="game-card fade-up d1">
+          <div class="cover c2">
+            <span class="cover-badge">Prototype</span>
+          </div>
+          <div class="card-body">
+            <h3>Project Beta</h3>
+            <p>An early prototype we can't stop playing. More details when it's ready.</p>
+          </div>
+        </article>
+
+        <article class="game-card fade-up d2">
+          <div class="cover c3">
+            <span class="cover-badge">Concept</span>
+          </div>
+          <div class="card-body">
+            <h3>Project Gamma</h3>
+            <p>A concept we're still shaping. Swap this out once you're ready to say more.</p>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ─────────────────────────── ABOUT ─── -->
+  <section id="about">
+    <div class="wrap">
+      <div class="about-inner">
+
+        <div class="about-copy">
+          <span class="label fade-up">About</span>
+          <h2 class="fade-up d1">A small team making games we want to play</h2>
+          <div class="fade-up d2">
+            <p>We're an indie studio from Singapore. Our games are small and focused — built around one good idea each, with no feature bloat and no manipulative loops.</p>
+            <p>We're just getting started. Follow us on the Play Store as we ship.</p>
+          </div>
+        </div>
+
+        <div class="stats-grid fade-up d1">
+          <div class="stat">
+            <div class="stat-n">1</div>
+            <div class="stat-l">Studio</div>
+          </div>
+          <div class="stat">
+            <div class="stat-n">2026</div>
+            <div class="stat-l">Founded</div>
+          </div>
+          <div class="stat">
+            <div class="stat-n">3</div>
+            <div class="stat-l">Games in the works</div>
+          </div>
+          <div class="stat">
+            <div class="stat-n">SG</div>
+            <div class="stat-l">Based in Singapore</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ─────────────────────────── CONTACT ─── -->
+  <section id="contact">
+    <div class="wrap">
+      <div class="contact-inner">
+        <span class="label fade-up">Contact</span>
+        <h2 class="fade-up d1">Say hello</h2>
+        <p class="fade-up d2">Press, collabs, or just want to talk about games — reach out anytime.</p>
+        <div class="fade-up d3">
+          <a href="mailto:hello@creativedogs.studio" class="btn btn-fill">
+            hello@creativedogs.studio
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────────── FOOTER ─── -->
+  <footer>
+    <div class="wrap footer-inner">
+      <p>© 2026 Creative Dogs Studio</p>
+      <p>Made in Singapore 🇸🇬</p>
+    </div>
+  </footer>
+
+  <!-- ─────────────────────────── JS ─── -->
+  <script>
+  // ── NAV: frosted glass on scroll
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 50);
+  }, { passive: true });
+
+  // ── SCROLL REVEAL via IntersectionObserver
+  const io = new IntersectionObserver(
+    entries => entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+    }),
+    { threshold: 0.12, rootMargin: '0px 0px -48px 0px' }
+  );
+  document.querySelectorAll('.fade-up').forEach(el => io.observe(el));
+
+  // ── GAME CARDS: 3D perspective tilt on hover
+  // Keep transition fast on enter (feels responsive), slow on leave (ease-out settle)
+  document.querySelectorAll('.game-card').forEach(card => {
+    const MAX_TILT = 7;
+
+    card.addEventListener('mouseenter', () => {
+      card.style.transition = 'border-color 280ms ease, box-shadow 280ms ease';
+    });
+
+    card.addEventListener('mousemove', e => {
+      const r = card.getBoundingClientRect();
+      const x = ((e.clientX - r.left)  / r.width)  - 0.5;
+      const y = ((e.clientY - r.top)   / r.height) - 0.5;
+      card.style.transform =
+        `perspective(640px) rotateY(${x * MAX_TILT}deg) rotateX(${-y * MAX_TILT}deg) translateY(-6px)`;
+    });
+
+    card.addEventListener('mouseleave', () => {
+      card.style.transition =
+        'transform 420ms cubic-bezier(0.22,0,0,1), border-color 280ms ease, box-shadow 280ms ease';
+      card.style.transform = '';
+    });
+  });
+  </script>
+
+</body>
+</html>
